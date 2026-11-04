@@ -1,5 +1,12 @@
 #!/bin/bash -e
 
+# Started as root: give the rails user the storage dir (a root-owned Fly volume),
+# then re-run this script as the unprivileged rails user.
+if [ "$(id -u)" = "0" ]; then
+  chown -R rails:rails /rails/storage
+  exec env HOME=/home/rails setpriv --reuid=1000 --regid=1000 --init-groups "$0" "$@"
+fi
+
 # If running the rails server then create or migrate existing database
 if [ "${@: -2:1}" == "./bin/rails" ] && [ "${@: -1:1}" == "server" ]; then
   ./bin/rails db:prepare

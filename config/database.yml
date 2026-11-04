@@ -84,21 +84,13 @@ test:
 # Read https://guides.rubyonrails.org/configuring.html#configuring-a-database
 # for a full overview on how database connection configuration can be specified.
 #
+# One Postgres database for everything (app data + Solid Queue tables), set via DATABASE_URL.
+# DATABASE_URL is Neon's pooled connection (PgBouncer, transaction mode), so:
+#   - advisory_locks: false  — migrations' session-level advisory lock doesn't survive the pooler
+#   - prepared_statements: false — safe default behind a transaction-mode pooler
 production:
-  primary: &primary_production
+  primary:
     <<: *default
-    database: rune_art_tracker_production
-    username: rune_art_tracker
-    password: <%= ENV["RUNE_ART_TRACKER_DATABASE_PASSWORD"] %>
-  cache:
-    <<: *primary_production
-    database: rune_art_tracker_production_cache
-    migrations_paths: db/cache_migrate
-  queue:
-    <<: *primary_production
-    database: rune_art_tracker_production_queue
-    migrations_paths: db/queue_migrate
-  cable:
-    <<: *primary_production
-    database: rune_art_tracker_production_cable
-    migrations_paths: db/cable_migrate
+    url: <%= ENV["DATABASE_URL"] %>
+    advisory_locks: false
+    prepared_statements: false

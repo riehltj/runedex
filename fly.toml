@@ -1,0 +1,37 @@
+# Fly.io config for RuneDex. Secrets (set with `fly secrets set`, never committed):
+#   RAILS_MASTER_KEY, DATABASE_URL (Neon), ADMIN_PASSWORD
+app = "runedex"
+primary_region = "iad"
+
+[build]
+
+[env]
+  RAILS_ENV = "production"
+  SOLID_QUEUE_IN_PUMA = "true"
+  # Thruster listens here; non-root processes can't bind port 80 on Fly machines.
+  HTTP_PORT = "8080"
+
+[http_service]
+  internal_port = 8080
+  force_https = true
+  # Sleep when idle, wake on the next request.
+  auto_stop_machines = "stop"
+  auto_start_machines = true
+  min_machines_running = 0
+
+  [[http_service.checks]]
+    grace_period = "30s"
+    interval = "30s"
+    method = "GET"
+    path = "/up"
+    timeout = "5s"
+
+# Uploaded rune images (Active Storage :local service writes to /rails/storage).
+[[mounts]]
+  source = "runedex_storage"
+  destination = "/rails/storage"
+
+[[vm]]
+  memory = "512mb"
+  cpu_kind = "shared"
+  cpus = 1
