@@ -1,0 +1,58 @@
+<div class="flex flex-wrap items-end justify-between gap-2 mb-4">
+  <div>
+    <h1 class="text-2xl font-bold">Rune Arts</h1>
+    <p class="text-sm opacity-70">Showing <%= @rune_arts.size %> of <%= @total %> arts</p>
+  </div>
+</div>
+
+<%# Color filter chips %>
+<div class="flex flex-wrap gap-2 mb-3">
+  <%= link_to "All colors", filter_path(@filters, domain: nil),
+        class: "btn btn-sm #{@filters[:domain].blank? ? 'btn-neutral' : 'btn-ghost'}" %>
+  <% RuneArt::DOMAINS.each do |domain, info| %>
+    <% active = @filters[:domain] == domain %>
+    <%= link_to filter_path(@filters, domain: (active ? nil : domain)),
+          class: "btn btn-sm gap-2 #{active ? '' : 'btn-ghost'}",
+          style: (active ? "background: #{info[:color]}; color: #000; border-color: #{info[:color]}" : nil) do %>
+      <span class="size-3 rounded-full" style="background: <%= info[:color] %>"></span>
+      <%= domain %>
+      <span class="opacity-60 text-xs"><%= @domain_counts[domain].to_i %></span>
+    <% end %>
+  <% end %>
+</div>
+
+<%# Set / variant / sort %>
+<%= form_with url: rune_arts_path, method: :get, class: "flex flex-wrap gap-2 mb-6",
+      data: { turbo_frame: "_top" } do |f| %>
+  <%= hidden_field_tag :domain, @filters[:domain] if @filters[:domain].present? %>
+  <%= select_tag :set, options_for_select(@set_names, @filters[:set]), include_blank: "All sets",
+        class: "select select-sm w-auto", onchange: "this.form.requestSubmit()" %>
+  <%= select_tag :variant, options_for_select(RuneArt::VARIANTS, @filters[:variant]), include_blank: "All variants",
+        class: "select select-sm w-auto", onchange: "this.form.requestSubmit()" %>
+  <%= select_tag :sort, options_for_select(RuneArt::SORTS.invert, @sort),
+        class: "select select-sm w-auto", onchange: "this.form.requestSubmit()" %>
+  <% if @filters.to_h.except("sort").compact_blank.any? %>
+    <%= link_to "Clear filters", rune_arts_path(sort: @filters[:sort]), class: "btn btn-sm btn-ghost" %>
+  <% end %>
+<% end %>
+
+<% if @rune_arts.empty? %>
+  <div class="card bg-base-100 p-10 text-center">
+    <p class="opacity-70 mb-4"><%= @total.zero? ? "No rune arts tracked yet." : "No arts match these filters." %></p>
+    <div><%= link_to "+ Add the first one", new_rune_art_path(domain: @filters[:domain], set: @filters[:set]), class: "btn btn-primary btn-sm" %></div>
+  </div>
+<% else %>
+  <% @rune_arts.chunk_while { |a, b| group_key(a, @sort) == group_key(b, @sort) }.each do |group| %>
+    <% if (heading = group_key(group.first, @sort)) %>
+      <h2 class="text-lg font-semibold mt-6 mb-3 flex items-center gap-2">
+        <% if @sort == "domain" %>
+          <span class="size-3 rounded-full" style="background: <%= group.first.color %>"></span>
+        <% end %>
+        <%= heading %> <span class="text-sm font-normal opacity-50"><%= group.size %></span>
+      </h2>
+    <% end %>
+    <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 sm:gap-4">
+      <%= render partial: "rune_art", collection: group %>
+    </div>
+  <% end %>
+<% end %>

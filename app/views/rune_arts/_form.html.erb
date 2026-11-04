@@ -1,0 +1,80 @@
+<%= form_with model: rune_art, class: "card bg-base-100" do |f| %>
+  <div class="card-body gap-4">
+    <% if rune_art.errors.any? %>
+      <div role="alert" class="alert alert-error">
+        <ul><% rune_art.errors.full_messages.each do |m| %><li><%= m %></li><% end %></ul>
+      </div>
+    <% end %>
+
+    <fieldset class="fieldset">
+      <legend class="fieldset-legend">Color (domain)</legend>
+      <div class="flex flex-wrap gap-2">
+        <% RuneArt::DOMAINS.each do |domain, info| %>
+          <label class="btn btn-sm gap-2 has-[:checked]:text-black" style="--chk: <%= info[:color] %>">
+            <%= f.radio_button :domain, domain, class: "hidden peer" %>
+            <span class="size-3 rounded-full" style="background: <%= info[:color] %>"></span><%= domain %>
+          </label>
+        <% end %>
+      </div>
+    </fieldset>
+    <style>label.btn:has(input:checked){background:var(--chk);border-color:var(--chk)}</style>
+
+    <div class="grid sm:grid-cols-2 gap-4">
+      <fieldset class="fieldset">
+        <legend class="fieldset-legend">Set</legend>
+        <%= f.text_field :set_name, list: "set-names", class: "input w-full", placeholder: "e.g. Origins", required: true %>
+        <datalist id="set-names"><% RuneArt.set_names.each do |s| %><option value="<%= s %>"><% end %></datalist>
+      </fieldset>
+      <fieldset class="fieldset">
+        <legend class="fieldset-legend">Variant</legend>
+        <%= f.select :variant, RuneArt::VARIANTS, {}, class: "select w-full" %>
+      </fieldset>
+      <fieldset class="fieldset">
+        <legend class="fieldset-legend">Title <span class="opacity-50">(optional)</span></legend>
+        <%= f.text_field :title, class: "input w-full", placeholder: "Defaults to \"Fury Rune\"" %>
+      </fieldset>
+      <fieldset class="fieldset">
+        <legend class="fieldset-legend">Collector #</legend>
+        <%= f.text_field :collector_number, class: "input w-full" %>
+      </fieldset>
+      <fieldset class="fieldset">
+        <legend class="fieldset-legend">Artist</legend>
+        <%= f.text_field :artist, class: "input w-full" %>
+      </fieldset>
+      <fieldset class="fieldset">
+        <legend class="fieldset-legend">Released</legend>
+        <%= f.date_field :released_on, class: "input w-full" %>
+      </fieldset>
+    </div>
+
+    <fieldset class="fieldset">
+      <legend class="fieldset-legend">How to get it</legend>
+      <%= f.text_field :source, class: "input w-full", placeholder: "e.g. Nexus Night prize, booster pack, store championship" %>
+    </fieldset>
+
+    <div class="grid sm:grid-cols-2 gap-4">
+      <fieldset class="fieldset">
+        <legend class="fieldset-legend">Upload image</legend>
+        <%= f.file_field :image, accept: "image/*", class: "file-input w-full" %>
+        <% if rune_art.image.attached? %>
+          <label class="label"><%= f.check_box :remove_image, { class: "checkbox checkbox-xs" }, "1", nil %> Remove current upload</label>
+        <% end %>
+      </fieldset>
+      <fieldset class="fieldset">
+        <legend class="fieldset-legend">…or image URL</legend>
+        <%= f.url_field :image_url, class: "input w-full", placeholder: "https://…" %>
+        <p class="label">Uploaded image wins if both are set.</p>
+      </fieldset>
+    </div>
+
+    <fieldset class="fieldset">
+      <legend class="fieldset-legend">Notes</legend>
+      <%= f.text_area :notes, rows: 3, class: "textarea w-full" %>
+    </fieldset>
+
+    <div class="card-actions justify-end">
+      <%= link_to "Cancel", (rune_art.persisted? ? rune_art : rune_arts_path), class: "btn btn-ghost" %>
+      <%= f.submit class: "btn btn-primary" %>
+    </div>
+  </div>
+<% end %>
