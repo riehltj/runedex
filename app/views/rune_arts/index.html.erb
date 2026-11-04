@@ -1,46 +1,67 @@
-<div class="flex flex-wrap items-end justify-between gap-2 mb-4">
-  <div>
-    <h1 class="text-2xl font-bold">Rune Arts</h1>
-    <p class="text-sm opacity-70">Showing <%= @rune_arts.size %> of <%= @total %> arts</p>
+<% filtered = @rune_arts.size != @total %>
+<div class="flex flex-wrap items-center justify-between gap-3 mb-4">
+  <div class="flex flex-wrap items-baseline gap-x-3 gap-y-1">
+    <h1 class="text-2xl sm:text-3xl font-bold tracking-tight">Your Dex</h1>
+    <div class="flex items-center gap-1.5 text-xs opacity-60">
+      <span class="tabular-nums"><%= filtered ? "#{@rune_arts.size} of #{@total}" : @total %> arts</span>
+      <span aria-hidden="true">·</span>
+      <span>Prices <%= @prices_as_of ? @prices_as_of.strftime("%b %-d, %-l:%M %p UTC") : "not synced" %></span>
+      <%= button_to "↻", refresh_prices_rune_arts_path, form: { class: "contents" },
+            class: "btn btn-ghost btn-xs btn-circle text-sm", title: "Refresh TCGplayer prices",
+            aria: { label: "Refresh prices" }, data: { turbo_submits_with: "…" } %>
+    </div>
+  </div>
+  <div role="tablist" class="tabs tabs-box tabs-sm bg-base-100 border border-base-content/10">
+    <%= link_to "Compare", filter_path(@filters, view: nil), role: "tab", class: "tab #{'tab-active' if @view == 'compare'}" %>
+    <%= link_to "Gallery", filter_path(@filters, view: "gallery"), role: "tab", class: "tab #{'tab-active' if @view == 'gallery'}" %>
   </div>
 </div>
 
-<%# Color filter chips %>
-<div class="flex flex-wrap gap-2 mb-3">
-  <%= link_to "All colors", filter_path(@filters, domain: nil),
-        class: "btn btn-sm #{@filters[:domain].blank? ? 'btn-neutral' : 'btn-ghost'}" %>
+<%= render "collection_summary", stats: @stats if @total.positive? %>
+
+<%# Filter bar: color chips on the left, set / variant / sort on the right %>
+<div class="flex flex-wrap items-center justify-between gap-2 mb-6 p-2 rounded-box bg-base-100 border border-base-content/10">
+<div class="flex flex-wrap gap-1">
+  <% all_active = @filters[:domain].blank? %>
+  <%= link_to "All", filter_path(@filters, domain: nil),
+        class: "btn btn-sm border #{all_active ? 'bg-base-content/10 border-base-content/25' : 'btn-ghost border-transparent opacity-70 hover:opacity-100'}" %>
   <% RuneArt::DOMAINS.each do |domain, info| %>
     <% active = @filters[:domain] == domain %>
     <%= link_to filter_path(@filters, domain: (active ? nil : domain)),
-          class: "btn btn-sm gap-2 #{active ? '' : 'btn-ghost'}",
-          style: (active ? "background: #{info[:color]}; color: #000; border-color: #{info[:color]}" : nil) do %>
-      <span class="size-3 rounded-full" style="background: <%= info[:color] %>"></span>
+          class: "btn btn-sm gap-2 border #{active ? 'font-semibold' : 'btn-ghost border-transparent opacity-70 hover:opacity-100'}",
+          style: (active ? "background: color-mix(in srgb, #{info[:color]} 16%, transparent); border-color: color-mix(in srgb, #{info[:color]} 60%, transparent); color: #{info[:color]}" : nil) do %>
+      <span class="size-2.5 rounded-full" style="background: <%= info[:color] %><%= "; box-shadow: 0 0 8px #{info[:color]}" if active %>"></span>
       <%= domain %>
-      <span class="opacity-60 text-xs"><%= @domain_counts[domain].to_i %></span>
+      <span class="text-xs tabular-nums opacity-60"><%= @domain_counts[domain].to_i %></span>
     <% end %>
   <% end %>
 </div>
 
-<%# Set / variant / sort %>
-<%= form_with url: rune_arts_path, method: :get, class: "flex flex-wrap gap-2 mb-6",
+<%= form_with url: rune_arts_path, method: :get, class: "flex flex-wrap gap-2",
       data: { turbo_frame: "_top" } do |f| %>
   <%= hidden_field_tag :domain, @filters[:domain] if @filters[:domain].present? %>
+  <%= hidden_field_tag :view, @filters[:view] if @filters[:view].present? %>
   <%= select_tag :set, options_for_select(@set_names, @filters[:set]), include_blank: "All sets",
-        class: "select select-sm w-auto", onchange: "this.form.requestSubmit()" %>
-  <%= select_tag :variant, options_for_select(RuneArt::VARIANTS, @filters[:variant]), include_blank: "All variants",
-        class: "select select-sm w-auto", onchange: "this.form.requestSubmit()" %>
-  <%= select_tag :sort, options_for_select(RuneArt::SORTS.invert, @sort),
-        class: "select select-sm w-auto", onchange: "this.form.requestSubmit()" %>
-  <% if @filters.to_h.except("sort").compact_blank.any? %>
-    <%= link_to "Clear filters", rune_arts_path(sort: @filters[:sort]), class: "btn btn-sm btn-ghost" %>
+        class: "select select-sm w-auto bg-base-200 border-base-content/15", onchange: "this.form.requestSubmit()" %>
+  <%= select_tag :variant, options_for_select(RuneArt::VARIANTS.map { |v| [ RuneArt.variant_label(v), v ] }, @filters[:variant]),
+        include_blank: "All variants", class: "select select-sm w-auto bg-base-200 border-base-content/15", onchange: "this.form.requestSubmit()" %>
+  <% if @view == "gallery" %>
+    <%= select_tag :sort, options_for_select(RuneArt::SORTS.invert, @sort),
+          class: "select select-sm w-auto bg-base-200 border-base-content/15", onchange: "this.form.requestSubmit()" %>
+  <% end %>
+  <% if @filters.to_h.except("sort", "view").compact_blank.any? %>
+    <%= link_to "Clear", rune_arts_path(@filters.to_h.slice("sort", "view").compact_blank), class: "btn btn-sm btn-ghost opacity-70" %>
   <% end %>
 <% end %>
+</div>
 
 <% if @rune_arts.empty? %>
   <div class="card bg-base-100 p-10 text-center">
     <p class="opacity-70 mb-4"><%= @total.zero? ? "No rune arts tracked yet." : "No arts match these filters." %></p>
     <div><%= link_to "+ Add the first one", new_rune_art_path(domain: @filters[:domain], set: @filters[:set]), class: "btn btn-primary btn-sm" %></div>
   </div>
+<% elsif @view == "compare" %>
+  <%= render "compare" %>
 <% else %>
   <% @rune_arts.chunk_while { |a, b| group_key(a, @sort) == group_key(b, @sort) }.each do |group| %>
     <% if (heading = group_key(group.first, @sort)) %>

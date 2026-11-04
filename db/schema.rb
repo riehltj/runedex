@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_11_04_163242) do
+ActiveRecord::Schema[8.1].define(version: 2026_11_04_165722) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -55,6 +55,11 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_04_163242) do
     t.text "notes"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.integer "tcgplayer_product_id"
+    t.decimal "market_price", precision: 10, scale: 2
+    t.decimal "low_price", precision: 10, scale: 2
+    t.datetime "price_updated_at"
+    t.integer "owned_count", default: 0, null: false
     t.index ["domain"], name: "index_rune_arts_on_domain"
     t.index ["set_name"], name: "index_rune_arts_on_set_name"
   end

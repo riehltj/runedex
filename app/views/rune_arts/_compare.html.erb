@@ -1,0 +1,55 @@
+<%# One band per color; each band has a row per variant, with sets as columns in release order. %>
+<div class="overflow-x-auto -mx-4 px-4 pb-2">
+  <div class="grid gap-x-3 gap-y-2 min-w-[760px]"
+       style="grid-template-columns: 6.5rem repeat(<%= @compare_sets.size %>, minmax(0, 1fr))">
+
+    <%# Column headers %>
+    <div class="sticky left-0 z-[1] bg-base-200"></div>
+    <% @compare_sets.each do |set| %>
+      <div class="text-center pb-1">
+        <div class="font-semibold text-sm"><%= set %></div>
+      </div>
+    <% end %>
+
+    <% @compare_domains.each do |domain| %>
+      <% color = RuneArt::DOMAINS.dig(domain, :color) %>
+      <div class="col-span-full mt-5 flex items-center gap-3">
+        <span class="size-3 rounded-full" style="background: <%= color %>; box-shadow: 0 0 10px <%= color %>"></span>
+        <h2 class="text-lg font-bold tracking-wide" style="color: <%= color %>"><%= domain %></h2>
+        <span class="h-px flex-1" style="background: linear-gradient(to right, <%= color %>66, transparent)"></span>
+      </div>
+
+      <% @compare_variants.each do |variant| %>
+        <div class="sticky left-0 z-[1] bg-base-200 flex items-center pr-2">
+          <span class="text-[11px] uppercase tracking-wider opacity-50 leading-tight"><%= RuneArt.variant_label(variant) %></span>
+        </div>
+        <% @compare_sets.each do |set| %>
+          <% arts = @compare_cells[[ domain, variant, set ]] %>
+          <div class="flex flex-col gap-2">
+            <% if arts %>
+              <% arts.each do |art| %>
+                <div class="dex-card">
+                <%= link_to art, class: "group block", title: "#{art.name} · #{art.set_name}" do %>
+                  <figure class="aspect-[5/7] rounded-lg overflow-hidden bg-base-300 ring-1 ring-base-content/10 transition duration-200 group-hover:-translate-y-0.5 group-hover:ring-2"
+                          style="--tw-ring-color: <%= color %>">
+                    <%= rune_image_tag art, class: "w-full h-full object-cover" %>
+                  </figure>
+                  <div class="mt-1 flex items-baseline justify-between gap-1 text-[11px]">
+                    <span class="opacity-40 group-hover:opacity-80 truncate"><%= art.collector_number %></span>
+                    <span class="font-semibold tabular-nums <%= art.market_price ? 'text-accent' : 'opacity-30' %>"><%= price_text(art.market_price) %></span>
+                  </div>
+                <% end %>
+                <%= render "collect", art: art %>
+                </div>
+              <% end %>
+            <% else %>
+              <div class="aspect-[5/7] rounded-lg border border-dashed border-base-content/15 flex items-center justify-center text-xs opacity-30">
+                None
+              </div>
+            <% end %>
+          </div>
+        <% end %>
+      <% end %>
+    <% end %>
+  </div>
+</div>

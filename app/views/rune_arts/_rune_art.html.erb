@@ -4,11 +4,15 @@
     <%= rune_image_tag rune_art, class: "w-full h-full object-cover" %>
   </figure>
   <div class="p-2.5 space-y-1">
-    <div class="font-semibold text-sm truncate"><%= rune_art.name %></div>
+    <div class="flex items-baseline justify-between gap-2">
+      <div class="font-semibold text-sm truncate"><%= rune_art.name %></div>
+      <% if rune_art.market_price %><div class="text-sm font-semibold text-accent tabular-nums"><%= price_text(rune_art.market_price) %></div><% end %>
+    </div>
     <div class="text-xs opacity-70 truncate"><%= rune_art.set_name %><%= " · ##{rune_art.collector_number}" if rune_art.collector_number.present? %></div>
     <div class="flex flex-wrap gap-1">
       <%= domain_badge rune_art.domain, size: "badge-xs" %>
       <span class="badge badge-xs badge-outline"><%= rune_art.variant %></span>
+      <span class="badge badge-xs <%= rune_art.complete? ? 'badge-primary' : 'badge-ghost' %> tabular-nums"><%= rune_art.owned_count %>/<%= RuneArt::COLLECTION_GOAL %></span>
     </div>
   </div>
 <% end %>

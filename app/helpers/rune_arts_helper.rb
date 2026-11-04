@@ -16,6 +16,14 @@ module RuneArtsHelper
     tag.span(domain, class: "badge #{size} border-0 font-semibold text-black", style: "background: #{color}")
   end
 
+  def tcgplayer_url(art)
+    "https://www.tcgplayer.com/product/#{art.tcgplayer_product_id}" if art.tcgplayer_product_id
+  end
+
+  def price_text(amount)
+    amount ? number_to_currency(amount) : "—"
+  end
+
   # Merge new filter values into the current query string.
   def filter_path(filters, **changes)
     rune_arts_path(filters.to_h.merge(changes.stringify_keys).compact_blank)

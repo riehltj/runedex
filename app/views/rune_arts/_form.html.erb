@@ -68,6 +68,12 @@
     </div>
 
     <fieldset class="fieldset">
+      <legend class="fieldset-legend">TCGplayer product ID <span class="opacity-50">(optional)</span></legend>
+      <%= f.number_field :tcgplayer_product_id, class: "input w-full", placeholder: "Auto-matched on price sync" %>
+      <p class="label">The number in a tcgplayer.com/product/… link. Set it if prices don't match automatically.</p>
+    </fieldset>
+
+    <fieldset class="fieldset">
       <legend class="fieldset-legend">Notes</legend>
       <%= f.text_area :notes, rows: 3, class: "textarea w-full" %>
     </fieldset>

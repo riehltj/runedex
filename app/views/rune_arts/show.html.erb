@@ -1,4 +1,4 @@
-<% content_for :title, "#{@rune_art.name} · Rune Art Tracker" %>
+<% content_for :title, "#{@rune_art.name} · RuneDex" %>
 <%= link_to "← All arts", rune_arts_path, class: "btn btn-ghost btn-sm mb-4" %>
 
 <div class="grid md:grid-cols-[minmax(0,420px)_1fr] gap-6">
@@ -27,6 +27,25 @@
             <dd><%= label == "Set" ? link_to(value, rune_arts_path(set: value), class: "link") : value %></dd>
           <% end %>
         </dl>
+        <div class="divider my-1"></div>
+        <div class="max-w-xs">
+          <div class="text-xs uppercase tracking-wider opacity-50 mb-1">Owned</div>
+          <%= render "collect", art: @rune_art %>
+        </div>
+        <div class="divider my-1"></div>
+        <div class="flex flex-wrap items-end justify-between gap-3">
+          <div>
+            <div class="text-xs uppercase tracking-wider opacity-50">TCGplayer market</div>
+            <div class="text-2xl font-bold text-accent tabular-nums"><%= price_text(@rune_art.market_price) %></div>
+            <div class="text-xs opacity-50">
+              <% if @rune_art.low_price %>Low <%= price_text(@rune_art.low_price) %> · <% end %>
+              <%= @rune_art.price_updated_at ? "as of #{@rune_art.price_updated_at.strftime('%b %-d, %-l:%M %p UTC')}" : "not on TCGplayer yet" %>
+            </div>
+          </div>
+          <% if (url = tcgplayer_url(@rune_art)) %>
+            <%= link_to "View on TCGplayer ↗", url, target: "_blank", rel: "noopener", class: "btn btn-sm btn-ghost" %>
+          <% end %>
+        </div>
         <% if @rune_art.notes.present? %>
           <div class="divider my-1"></div>
           <p class="text-sm whitespace-pre-line"><%= @rune_art.notes %></p>
